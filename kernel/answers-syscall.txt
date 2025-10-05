@@ -1,0 +1,21 @@
+1. Looking at the backtrace output, which function called syscall?
+Answer: trapret (the function that returns from a trap and eventually triggers a system call)
+
+2. What is the value of p->trapframe->a7 and what does that value represent?
+Answer: The value of p->trapframe->a7 is the system call number that the current process is invoking. For example, for the first user program (init), it corresponds to the first system call made by init.
+
+3. What was the previous mode that the CPU was in?
+Answer: User mode (the CPU was in user mode before the system call trap to supervisor mode).
+
+4. Write down the assembly instruction the kernel is panicing at. Which register corresponds to the variable num?
+Answer: 
+Instruction: 0x80001d08 <syscall+16>: lw a3,0(zero)
+Register: a3 corresponds to the variable num in syscall.
+
+5. Why does the kernel crash? 
+Answer: The kernel crashes because it tries to access address 0 (dereference a null pointer) which is not mapped in the kernel address space. This is confirmed by scause, indicating a load access fault.
+
+6. What is the name of the process that was running when the kernel paniced? What is its process id (pid)?
+Answer: 
+Process name: init
+Process ID (pid): 1
