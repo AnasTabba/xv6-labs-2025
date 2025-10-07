@@ -8,6 +8,10 @@
 #include "proc.h"
 #include "fs.h"
 
+#define LEVELS   3 
+#define IDXBITS  9
+#define PGOFF    12
+
 /*
  * the kernel's page table.
  */
@@ -142,13 +146,43 @@ walkaddr(pagetable_t pagetable, uint64 va)
 
 
 #if defined(LAB_PGTBL) || defined(SOL_MMAP) || defined(SOL_COW)
+static void print_indent(int depth);
+static void vmprint_walk(pagetable_t pt, int level, uint64 vaprefix);
+
 void
 vmprint(pagetable_t pagetable) {
   // your code here
+  printf("page table %p\n", pagetable);
+  vmprint_walk(pagetable, 2, 0);
+}
+
+static void vmprint_walk(pagetable_t pt, int level, uint64 vaprefix) {
+  for (int i = 0; i < 512; i++) {
+    pte_t pte = pt[i];
+    if((pte & PTE_V) == 0) 
+      continue;
+
+    uint64 pa = PTE2PA(pte);
+
+    int shift = level * IDXBITS + PGOFF;
+    uint64 va_node = vaprefix | ((uint64)i << shift);
+
+    int depth = (LEVELS - 1) - level + 1;
+
+    print_indent(depth);
+    printf("%p: pte %p pa %p\n", (void*)va_node, (void*)pte, (void*)pa);
+
+    if ((pte & (PTE_R| PTE_W |PTE_X)) == 0) {
+      vmprint_walk((pagetable_t)pa, level - 1, va_node);
+    }
+  }
+}
+
+static void print_indent(int depth) {
+  for(int i = 0; i < depth; i++) 
+    printf(" ..");
 }
 #endif
-
-
 
 // add a mapping to the kernel page table.
 // only used when booting.
